@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.138.0](https://github.com/mubaidr/gem-team/compare/gem-team-v1.137.0...gem-team-v1.138.0) (2026-10-13)
+
+
+### 🛠️ Bug Fixes
+
+* https://github.com/mubaidr/gem-team/issues/227 ([e830e43](https://github.com/mubaidr/gem-team/commit/e830e43cce19061563014ec07821fa952677723a))
+
 ## [1.137.0](https://github.com/mubaidr/gem-team/compare/gem-team-v1.136.0...gem-team-v1.137.0) (2026-10-02)
 
 

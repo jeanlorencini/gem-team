@@ -1,0 +1,37 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const cp = require('node:child_process');
+
+test('first registration CLI merges all events and rollback preserves the copied helper', t => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'gem-registration-'));
+  t.after(() => fs.rmSync(home, { recursive: true, force: true }));
+  const base = path.join(home, '.claude');
+  const core = path.join(base, 'hooks/gem-workflow.js');
+  fs.mkdirSync(path.dirname(core), { recursive: true });
+  const original = fs.readFileSync(path.join(__dirname, '../src/gem-workflow.js'));
+  fs.writeFileSync(core, original);
+  const before = { model: 'unchanged', hooks: { PreToolUse: [{ hooks: [{ command: 'native-permission' }] }] } };
+  const settings = path.join(base, 'settings.json');
+  fs.writeFileSync(settings, JSON.stringify(before));
+  const cli = path.join(__dirname, '../install-global.cjs');
+  const invoke = (...args) => cp.spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+  assert.notEqual(invoke().status, 0);
+  const hash = crypto.createHash('sha256').update(original).digest('hex');
+  const run = invoke('--upgrade', hash, home);
+  assert.equal(run.status, 0, run.stderr);
+  const manifest = JSON.parse(run.stdout);
+  assert.deepEqual(manifest.addedEvents.sort(), ['PostToolUse', 'PreToolUse', 'SessionStart', 'Stop', 'UserPromptSubmit']);
+  const registered = JSON.parse(fs.readFileSync(settings, 'utf8'));
+  assert.equal(registered.model, before.model);
+  assert.deepEqual(registered.hooks.PreToolUse[0], before.hooks.PreToolUse[0]);
+  assert.deepEqual(fs.readFileSync(path.join(manifest.backup, 'gem-workflow.js')), original);
+  const undo = invoke('--rollback', manifest.backup);
+  assert.equal(undo.status, 0, undo.stderr);
+  assert.deepEqual(JSON.parse(fs.readFileSync(settings, 'utf8')), before);
+  assert.deepEqual(fs.readFileSync(core), original);
+});

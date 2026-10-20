@@ -1,0 +1,24 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),crypto=require('node:crypto');
+const {upgrade,rollback}=require('../install-global.cjs');
+const w=require('../src/gem-workflow.js');
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+test('integration upgrade and rollback leave Gem agents, profiles and unrelated settings alone',t=>{
+  const home=fs.mkdtempSync(path.join(os.tmpdir(),'gem-upgrade-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+  const base=path.join(home,'.claude'),core=path.join(base,'hooks/gem-workflow.js');fs.mkdirSync(path.dirname(core),{recursive:true});fs.mkdirSync(path.join(base,'agents'));
+  const agent=path.join(base,'agents/gem-orchestrator.md');fs.writeFileSync(agent,'unchanged Gem routing');
+  const profile=path.join(base,'hooks/gem-workflow-execute.json');fs.writeFileSync(profile,'{"env":{"GEM_WORKFLOW_MODE":"execute"}}');
+  const old=Buffer.from('// reviewed previous integration\n');fs.writeFileSync(core,old);
+  const settings=w.hookSettings(core);settings.hooks.UserPromptSubmit=[{hooks:[{command:'existing-notifier'}]}];settings.model='preserve-model';settings.env={KEEP:'yes'};
+  const file=path.join(base,'settings.json');fs.writeFileSync(file,JSON.stringify(settings));
+  assert.throws(()=>upgrade(home,'wrong-hash'),/reviewed version/);assert.deepEqual(fs.readFileSync(core),old);
+  const m=upgrade(home,hash(old));let updated=JSON.parse(fs.readFileSync(file));
+  assert.equal(fs.readFileSync(agent,'utf8'),'unchanged Gem routing');assert.equal(updated.model,'preserve-model');assert.deepEqual(updated.env,{KEEP:'yes'});
+  assert.equal(updated.hooks.UserPromptSubmit.length,2);assert.equal(updated.hooks.PreToolUse.length,1);assert.deepEqual(m.addedEvents,['UserPromptSubmit']);
+  upgrade(home,hash(fs.readFileSync(core)));updated=JSON.parse(fs.readFileSync(file));assert.equal(updated.hooks.UserPromptSubmit.length,2);
+  updated.model='later-model';updated.hooks.Stop.push({hooks:[{command:'later-notifier'}]});fs.writeFileSync(file,JSON.stringify(updated));
+  rollback(m.backup);const restored=JSON.parse(fs.readFileSync(file));assert.deepEqual(fs.readFileSync(core),old);
+  assert.equal(restored.model,'later-model');assert.equal(restored.hooks.UserPromptSubmit.length,1);assert.equal(restored.hooks.UserPromptSubmit[0].hooks[0].command,'existing-notifier');
+  assert.equal(restored.hooks.Stop.at(-1).hooks[0].command,'later-notifier');assert.equal(fs.readFileSync(agent,'utf8'),'unchanged Gem routing');assert(fs.existsSync(profile));
+});

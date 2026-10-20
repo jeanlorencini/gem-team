@@ -37,7 +37,7 @@ Gem Team wraps your AI with a disciplined engineering delivery system. It enforc
 - **Smart & Efficient**: 40-60% less context per task through scoped handoffs and proportional architecture. Cached tokens and compact evidence paths keep costs predictable and your AI focused.
 - **Works With Your Tools**: Seamless integration with Copilot, Claude, Cursor, Codex, Gemini, and Windsurf. Use your preferred environment.
 - **Learns & Improves**: Remembers what works and extracts reusable skills. Your AI gets smarter and more efficient over time.
-- **Resumable Plans**: Every MEDIUM/HIGH task gets a persistent plan ID. Pause, resume, or extend work without losing context or re-discovering what you already know.
+- **Resumable Plans**: Every MEDIUM/HIGH task gets a persistent plan ID. Recover unambiguous active work from compact project records without manually supplying the ID; ask only when recovery is missing or ambiguous.
 - **Works With Any Model**: Hardened output contracts and relational invariant fallbacks mean every agent works across commercial and open models - not just the ones that memorized your schema.
 
 ### Intelligent Model Routing
@@ -60,7 +60,15 @@ model_routing:
 
 **TL;DR:** Gem Team turns AI coding into a structured, repeatable engineering process with built-in quality, efficiency, and learning.
 
+## Optional verified conversation workflow
+
+This fork adds compact project-state recovery without requiring a manually supplied plan ID, while preserving Gem's specialist routing and proportional fast path. Questions, investigation, and authorized implementation stay in one normal session.
+
+For Claude Code, the [optional workflow integration](integrations/claude-workflow/README.md) adds operator-approved project checks, fresh Git commit verification, and separate human acceptance. It is **not activated by APM**, does not select models, and does not replace native permissions. Runtime setup is an explicit, one-time operator action; there is no mandatory consultation/execution profile.
+
 ## Quick Start
+
+The generic commands below target upstream. To use this fork's recovery changes, install agent definitions from the reviewed fork revision instead; the optional runtime helper still requires its separate setup above.
 
 Install [APM](https://microsoft.github.io/apm/) first:
 

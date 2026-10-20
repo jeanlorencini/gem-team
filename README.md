@@ -1,27 +1,47 @@
-# Gem Team
+# Gem Team — Continuity & Verified Delivery Fork
 
-**Turn AI coding into an engineering process.**
+**Recover project context, keep one conversation, and verify delivery independently.**
 
-> Agent definitions that enforce good software engineering: optimizing cost, time, and quality.
+This is an independent fork of [mubaidr/gem-team](https://github.com/mubaidr/gem-team), maintained by [jeanlorencini](https://github.com/jeanlorencini). It adds focused continuity and verification improvements while retaining Gem's existing specialist routing, proportional planning, and model tiers. It is not a replacement orchestration framework or an official upstream release.
+
+## What is different in this fork?
+
+| Improvement | What changes |
+| --- | --- |
+| **Resume without a manual plan ID** | Recover unambiguous active work from compact project records; ask only when state is missing or ambiguous. |
+| **Project-owned continuity** | Preserve objectives, decisions and reasons, interfaces/reuse, and operational state without loading the full transcript. Recovery does not authorize new work or silently repair unexpected changes. |
+| **One normal conversation** | Questions, investigation, and authorized implementation share the same session. The optional Claude helper does not require choosing consultation/execution profiles before starting. |
+| **Independent commit verification** | In explicitly opted-in projects, a Git hook reruns operator-approved checks on each commit attempt rather than trusting a specialist's report or cached PASS. |
+| **Separate human acceptance** | Technical verification and actual user acceptance are distinct, tied to the current verified content. Pending acceptance does not authorize another feature. |
+
+**What stays unchanged:** Gem's specialist selection, fast path, risk-based planning/review, model routing, and retry limits. No new intent classifier, mandatory reviewer, daemon, or supervisor is introduced. Ordinary tool authorization remains subject to native permissions; explicit readonly remains available.
+
+### Setup and validation scope
+
+- **Agent changes:** project recovery and compact record consolidation are in this fork's agent definitions.
+- **Optional runtime:** Claude-specific hooks require [explicit operator setup](integrations/claude-workflow/README.md), once globally and once per protected project. **APM does not activate them automatically.**
+- **Validation:** 36 portable tests and APM checks passed. The earlier interactive evaluation covered conversation, read-only diagnosis, authorized repair, subsequent questions, and actual commit/bypass refusals. See [validation scope and known limitations](integrations/claude-workflow/VALIDATION.md).
+- **Boundaries:** this is not an OS sandbox or a guarantee against arbitrary scripts or false prose. No token-cost, latency, or model-quality improvement was measured for this fork. The documentation-site build remains blocked by its pre-existing dependency lockfile.
+
+## Upstream project and attribution
+
+The original agent team and its general capabilities come from [mubaidr/gem-team](https://github.com/mubaidr/gem-team). The original [Apache-2.0 license](LICENSE) is retained. The homepage, package badge, release badge, and performance observations below refer to **upstream**, not a release or benchmark of this fork.
 
 <p align="center">
-  <a href="https://mubaidr.github.io/gem-team/"><b>Visit Homepage</b></a>
+  <a href="https://mubaidr.github.io/gem-team/"><b>Upstream Homepage</b></a>
 </p>
 
-<br/>
-
 <p align="center">
-  <img src="https://img.shields.io/badge/APM-mubaidr/gem--team-blue?style=flat-square" alt="APM package: mubaidr/gem-team">
-  <img src="https://img.shields.io/github/v/release/mubaidr/gem-team?style=flat-square&color=important" alt="Latest release">
+  <img src="https://img.shields.io/badge/upstream_APM-mubaidr/gem--team-blue?style=flat-square" alt="Upstream APM package: mubaidr/gem-team">
+  <img src="https://img.shields.io/github/v/release/mubaidr/gem-team?style=flat-square&color=important&label=upstream%20release" alt="Latest upstream release, not this fork's version">
   <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=flat-square" alt="Apache-2.0 license">
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="Pull requests welcome">
 </p>
 
-## Real-world performance
+### Upstream performance observations
 
 > Sub-$0.001 per API call on 100K+ token contexts. 82.8M+ tokens processed across 666 agent runs, with typical responses completing in 2-5 seconds. Prompt caching turns large contexts into sub-penny operations - a 10x cost reduction vs. uncached input.
 
-_Observed during Gem-Team development using DeepSeek V4.1 Flash via CommandCode._
+_Reported upstream during Gem-Team development using DeepSeek V4.1 Flash via CommandCode. Not independently reproduced here and not evidence of this fork's performance._
 
 ## The Problem
 
